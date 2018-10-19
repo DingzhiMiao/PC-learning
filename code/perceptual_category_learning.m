@@ -419,7 +419,6 @@ try
             
             if keyCode(YesKey)
                 thisCorrect = 1;
-<<<<<<< HEAD
                 Screen('FillRect',wPtr,Gray,wRect);
                 Screen('DrawDots',wPtr,[0,0], FPsize,[0 255 0],dotsXY,FPtype);
                 Screen('Flip',wPtr);
@@ -430,7 +429,6 @@ try
                 Screen('DrawDots',wPtr,[0,0], FPsize,[255 0 0],dotsXY,FPtype);
                 Screen('Flip',wPtr);
                 sound(yy,Fs);
-=======
                 if feedback
                     WaitSecs(dur.delay);
                     beep
@@ -441,7 +439,6 @@ try
                     WaitSecs(dur.delay);
                     sound(yy,Fs);
                 end
->>>>>>> f676e01fa1c123d63dbd288d1d3d8791814986da
             elseif keyCode(EscapeKey)
                 Screen('CloseAll');
                 reset_test_gamma;
