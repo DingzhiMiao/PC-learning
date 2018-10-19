@@ -1,9 +1,7 @@
-% function perceptual_category_learning(subjectID, subrun, feedback, ifeyelink)
-clear;
+% function perceptual_category_learning(subjeckID, subrun, feedback, ifeyelink)
 ifeyelink = 0;
 subjectID = 'testII';
 subrun = 1;
-feedback = 1;
 
 %% initialize
 commandwindow;
@@ -63,7 +61,7 @@ type = config.type;
 dur.iti = 0.8;
 dur.stim = 0.2;
 dur.rest = 2;
-dur.delay = 0.2;
+
 try
     if ifeyelink
         %% STEP 1
@@ -91,7 +89,7 @@ try
         edfFile = ['PC' subject  num2str(block)];
         % the code are in case the subject wrongly input the argument which may replace the old data.
         while  2==exist([filepath '\raw_edf\' edfFile '.edf'],'file')
-            disp('Run number was wrong, please check and input agian!');
+            disp('Run number was wrong, please check and input agian!');   
         end
     end
     
@@ -101,7 +99,7 @@ try
     
     Screens = Screen('Screens');
     ScnNbr = max(Screens);
-    oldResolution = Screen('Resolution', ScnNbr, height, width, framerate, 32); % change resolution
+    oldResolution = Screen('Resolution', ScnNbr, height, width, framerate, 32); % change resolution  
     [wPtr, wRect] = Screen('OpenWindow', ScnNbr, 0,[],32,2);
     FlipInterval = Screen('GetFlipInterval',wPtr);
     [wCx,wCy] = WindowCenter(wPtr);
@@ -313,11 +311,11 @@ try
             % orientation frequency
             [ ori_std, freq_std, key] = Thres2Feature( type, difficulty );
             if task== 'RB'
-                orientation = rule + ori_std/100*(oriRange(2)-oriRange(1))-(oriRange(2)-oriRange(1))/2;
+                orientation = rule + ori_std/100*90-45;
             else
-                orientation = ori_std/100*(oriRange(2)-oriRange(1))+oriRange(1);
+                orientation = ori_std/100*90;
             end
-            frequency = ori_std/100*(freRange(2)-freRange(1))+freRange(1);
+            frequency = ori_std/100*(freRange(2)-freRange(1))+1;
             orientation = -orientation;
             YesKey = keyList{key};
             NoKey = keyList{3-key};
@@ -374,7 +372,7 @@ try
             Screen('DrawDots',wPtr,[0,0], FPsize,FPcolor,dotsXY,FPtype);
             Screen('Flip',wPtr);
             if ifeyelink
-                Eyelink('Message', 'Target_show');
+                Eyelink('Message', 'Target_show');           
                 tic
                 while toc < dur.stim
                     if Eyelink( 'NewFloatSampleAvailable') > 0
@@ -405,7 +403,7 @@ try
             Screen('Flip',wPtr);
             if ifeyelink
                 Eyelink('Message', 'Target_disappear');
-            end
+            end                     
             
             [~, secs, keyCode] = KbCheck;
             touch = 0;
@@ -419,16 +417,11 @@ try
             
             if keyCode(YesKey)
                 thisCorrect = 1;
-                if feedback
-                    WaitSecs(dur.delay);
-                    beep
-                end
+                beep
             elseif keyCode(NoKey)
                 thisCorrect = 0;
-                if feedback
-                    WaitSecs(dur.delay);
-                    sound(yy,Fs);
-                end
+                sound(yy,Fs);
+                
             elseif keyCode(EscapeKey)
                 Screen('CloseAll');
                 reset_test_gamma;
