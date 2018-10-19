@@ -1,9 +1,9 @@
-% function perceptual_category_learning(subjeckID, feedback, ifeyelink)
-
-learningType = 'PL'; % or CL
+% function perceptual_category_learning(subjectID, subrun, feedback, ifeyelink)
+clear;
 ifeyelink = 0;
 subjectID = 'hdzhdz';
 subrun = 1;
+feedback = 1;
 
 %% initialize
 commandwindow;
@@ -46,11 +46,15 @@ distance = 1000;
 
 ecc = 5;
 totalTrials = 60;
+
 initDiff = 20;
-freRange = [1 8];
 maxDiff = 25*sqrt(2);
 
+freRange = [1 8];
+oriRange = [0 90];
+
 keyList = {KbName('1'),KbName('2')};
+
 location = config.location;
 task = config.task;
 rule = config.rule;
@@ -59,7 +63,7 @@ type = config.type;
 dur.iti = 0.8;
 dur.stim = 0.2;
 dur.rest = 2;
-
+dur.delay = 0.2;
 try
     if ifeyelink
         %% STEP 1
@@ -87,7 +91,7 @@ try
         edfFile = ['PC' subject  num2str(block)];
         % the code are in case the subject wrongly input the argument which may replace the old data.
         while  2==exist([filepath '\raw_edf\' edfFile '.edf'],'file')
-            disp('Run number was wrong, please check and input agian!');   
+            disp('Run number was wrong, please check and input agian!');
         end
     end
     
@@ -97,7 +101,7 @@ try
     
     Screens = Screen('Screens');
     ScnNbr = max(Screens);
-    oldResolution = Screen('Resolution', ScnNbr, height, width, framerate, 32); % change resolution  
+    oldResolution = Screen('Resolution', ScnNbr, height, width, framerate, 32); % change resolution
     [wPtr, wRect] = Screen('OpenWindow', ScnNbr, 0,[],32,2);
     FlipInterval = Screen('GetFlipInterval',wPtr);
     [wCx,wCy] = WindowCenter(wPtr);
@@ -309,11 +313,11 @@ try
             % orientation frequency
             [ ori_std, freq_std, key] = Thres2Feature( type, difficulty );
             if task== 'RB'
-                orientation = rule + ori_std/100*90-45;
+                orientation = rule + ori_std/100*(oriRange(2)-oriRange(1))-(oriRange(2)-oriRange(1))/2;
             else
-                orientation = ori_std/100*90;
+                orientation = ori_std/100*(oriRange(2)-oriRange(1))+oriRange(1);
             end
-            frequency = ori_std/100*(freRange(2)-freRange(1))+1;
+            frequency = ori_std/100*(freRange(2)-freRange(1))+freRange(1);
             orientation = -orientation;
             YesKey = keyList{key};
             NoKey = keyList{3-key};
@@ -370,7 +374,7 @@ try
             Screen('DrawDots',wPtr,[0,0], FPsize,FPcolor,dotsXY,FPtype);
             Screen('Flip',wPtr);
             if ifeyelink
-                Eyelink('Message', 'Target_show');           
+                Eyelink('Message', 'Target_show');
                 tic
                 while toc < dur.stim
                     if Eyelink( 'NewFloatSampleAvailable') > 0
@@ -401,7 +405,7 @@ try
             Screen('Flip',wPtr);
             if ifeyelink
                 Eyelink('Message', 'Target_disappear');
-            end                     
+            end
             
             [~, secs, keyCode] = KbCheck;
             touch = 0;
@@ -415,6 +419,7 @@ try
             
             if keyCode(YesKey)
                 thisCorrect = 1;
+<<<<<<< HEAD
                 Screen('FillRect',wPtr,Gray,wRect);
                 Screen('DrawDots',wPtr,[0,0], FPsize,[0 255 0],dotsXY,FPtype);
                 Screen('Flip',wPtr);
@@ -425,6 +430,18 @@ try
                 Screen('DrawDots',wPtr,[0,0], FPsize,[255 0 0],dotsXY,FPtype);
                 Screen('Flip',wPtr);
                 sound(yy,Fs);
+=======
+                if feedback
+                    WaitSecs(dur.delay);
+                    beep
+                end
+            elseif keyCode(NoKey)
+                thisCorrect = 0;
+                if feedback
+                    WaitSecs(dur.delay);
+                    sound(yy,Fs);
+                end
+>>>>>>> f676e01fa1c123d63dbd288d1d3d8791814986da
             elseif keyCode(EscapeKey)
                 Screen('CloseAll');
                 reset_test_gamma;
@@ -486,6 +503,7 @@ try
             
             result{block}.ori(nTrials) = orientation;
             result{block}.fre(nTrials) = frequency;
+            result{block}.key(nTrials) = key;
             result{block}.resp(nTrials) = thisCorrect;
             nTrials = nTrials+1;
         else
@@ -539,11 +557,12 @@ try
     fprintf(fidnew, '%s ', subjectID);
     fprintf(fidnew, '%2d ', subrun);
     fprintf(fidnew, '%s ', date);
-    fprintf(fidnew, '%s ', learningType);
+    fprintf(fidnew, '%s ', type);
     fprintf(fidnew, '%s ', task);
     fprintf(fidnew, '%s ', ifeyelink);
     fprintf(fidnew, '%5.3f ',threshold);
     fprintf(fidnew, '%2d ', ecc);
+    fprintf(fidnew, '%2d ', initDiff);
     fprintf(fidnew, '%5.3f ',pEye);
     fprintf(fidnew, '%4.2f ', contrast);
     fprintf(fidnew, '%4.2f ', sigma);
