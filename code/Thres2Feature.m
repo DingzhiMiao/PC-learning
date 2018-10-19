@@ -1,17 +1,20 @@
-function [ ori_std, freq_std ] = Thres2Feature( F_type, thres )
+function [ ori_std, freq_std, key] = Thres2Feature( F_type, thres )
 %Thres2Feature turns Treshold to ori and freq values
 %    [ ori_std, freq_std ] = Thres2Feature( F_type, thres )
 %           Input: F_type: type of the Learning, 'RB', 'II_1', 'II_2'
 %                     thres: thres want to transform
 %           Output: ori_std, freq_std: between [0 100]
+%                        key: 1-higher than line; 2- lower than line
 
 switch F_type
     case 'RB'
         y_func = '50';
         if rand > 0.5
             move_dir = 1;
+            key = 1;
         else
             move_dir = -1;
+            key = 2;
         end;
         x = rand * 100;
         eval(['ori_std = ' y_func ' + move_dir * thres']);
@@ -20,10 +23,12 @@ switch F_type
         y_func = 'x';
         if rand > 0.5
             move_dir = 1;
+            key = 1;
             min_x = 0;
             max_x = 100 - thres * sqrt(2);
         else
             move_dir = -1;
+            key = 2;
             min_x =  thres * sqrt(2);
             max_x = 100;
         end;
@@ -34,10 +39,12 @@ switch F_type
         y_func = '100-x';
          if rand > 0.5
             move_dir = -1;
+            key = 1;
             min_x = 0;
             max_x = 100 - thres * sqrt(2);
         else
             move_dir = 1;
+            key = 2;
             min_x =  thres * sqrt(2);
             max_x = 100;
         end;
