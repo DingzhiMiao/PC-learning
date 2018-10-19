@@ -1,10 +1,9 @@
 % function perceptual_category_learning(subjeckID, feedback, ifeyelink)
 
 learningType = 'PL'; % or CL
-task = 'RB';  % or II
 ifeyelink = 0;
-subjeckID = 'test';
-
+subjectID = 'testII';
+subrun = 1;
 
 %% initialize
 commandwindow;
@@ -19,7 +18,7 @@ rng('Shuffle')
 %% Info.
 filepath = pwd;
 dataPath = [filepath '\..\data'];
-subPath = [dataPath '\subjectID'];
+subPath = [dataPath '\' subjectID];
 
 if ~exist(subPath, 'dir')
     mkdir(subPath);
@@ -33,6 +32,12 @@ else
     config = set_configuration(subPath);
 end
 
+block = 0;
+if exist([subPath '/pc_learning.mat'],'file')
+    load([subPath '/pc_learning.mat']);
+end
+block = block + 1;
+
 height = 1024;
 width = 768;
 framerate = 60;
@@ -41,9 +46,15 @@ distance = 1000;
 
 ecc = 5;
 totalTrials = 60;
+initDiff = 20;
+freRange = [1 8];
+maxDiff = 25*sqrt(2);
 
-location = (config.location+4) * 45;
+keyList = {KbName('1'),KbName('2')};
+location = config.location;
+task = config.task;
 rule = config.rule;
+type = config.type;
 
 dur.iti = 0.8;
 dur.stim = 0.2;
@@ -68,11 +79,6 @@ try
         % Added a dialog box to set your own EDF file name before opening
         % experiment graphics. Make sure the entered EDF file name is 1 to 8
         % characters in length and only numbers or letters are allowed.
-        block = 0;
-        if exist([subPath '/pc_learning.mat'],'file')
-            load([subPath '/pc_learning.mat']);
-        end
-        block = block + 1;
         
         while length(subject)>7
             disp('Enter your name with less characters (1 to 7 letters allowed)');
@@ -104,7 +110,7 @@ try
     h = round(wRect(3));
     v = round(wRect(4));
     
-    PixelPerDeg=displaySize(1)/2/atand(h/2/distance);
+    PixelPerDeg=h/2/atand(displaySize(1)/2/distance);
     
     if ifeyelink
         %% STEP 4
@@ -210,7 +216,7 @@ try
     pStaircase.conditionScale = 1;       % This identifies the type of the scale of conditions vector, 0 for linear; 1 for logarithm scale.
     pStaircase.nReversals=10;            % Num. of reversals to end the staircase
     pStaircase.nCalc =6;                 % Num. of reversals used for computing final threshold
-    pStaircase.initSetup=initOri;
+    pStaircase.initSetup=initDiff;
     pStaircase.testCondition=10.^[-1:0.05:1.8];
     pStaircase.step=pStaircase.testCondition(2)/pStaircase.testCondition(1);
     
@@ -288,7 +294,10 @@ try
         dc = 0;
         
         difficulty = history.testValue(nTrials);
-        
+        if difficulty > maxDiff
+            difficulty = maxDiff;
+            history.testValue(nTrials) = maxDiff;
+        end
         if ifeyelink
             Eyelink('Message', 'TRIALID %d', nTrials);
         end
@@ -298,8 +307,16 @@ try
             
             %% define orientation and spatial frequency
             % orientation frequency
-            orientation = 45;
-            frequency = 3;
+            [ ori_std, freq_std, key] = Thres2Feature( type, difficulty );
+            if task== 'RB'
+                orientation = rule + ori_std/100*90-45;
+            else
+                orientation = ori_std/100*90;
+            end
+            frequency = ori_std/100*(freRange(2)-freRange(1))+1;
+            orientation = -orientation;
+            YesKey = keyList{key};
+            NoKey = keyList{3-key};
             
             %% make gabor
             % grayscaleImageMatrix=MyGabor(PixelPerDeg, xor, xextd, yor, yextd, contrast, cycPerDeg, sigma, phase, tiltInDegrees, locCx, locCy)
@@ -510,10 +527,10 @@ try
     pEye = eyeTrial/(nTrials+eyeTrial);
     
     %save (append) the data
-    save([subPath '/pc_learning.mat'],'subject','result','block');
+    save([subPath '/pc_learning.mat'],'subjectID','result','block');
     
     fidnew=fopen(fileName,'a');
-    fprintf(fidnew, '%s ', subject);
+    fprintf(fidnew, '%s ', subjectID);
     fprintf(fidnew, '%2d ', subrun);
     fprintf(fidnew, '%s ', date);
     fprintf(fidnew, '%s ', learningType);

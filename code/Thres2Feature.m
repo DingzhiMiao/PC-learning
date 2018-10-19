@@ -11,13 +11,13 @@ switch F_type
         y_func = '50';
         if rand > 0.5
             move_dir = 1;
-            key = 1;
+            key = 2;
         else
             move_dir = -1;
-            key = 2;
+            key = 1;
         end;
         x = rand * 100;
-        eval(['ori_std = ' y_func ' + move_dir * thres']);
+        eval(['ori_std = ' y_func ' + move_dir * thres;']);
         freq_std = x;
     case 'II_1'
         y_func = 'x';
