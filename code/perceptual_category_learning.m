@@ -2,7 +2,7 @@
 
 learningType = 'PL'; % or CL
 ifeyelink = 0;
-subjectID = 'testII';
+subjectID = 'hdzhdz';
 subrun = 1;
 
 %% initialize
@@ -415,11 +415,16 @@ try
             
             if keyCode(YesKey)
                 thisCorrect = 1;
+                Screen('FillRect',wPtr,Gray,wRect);
+                Screen('DrawDots',wPtr,[0,0], FPsize,[0 255 0],dotsXY,FPtype);
+                Screen('Flip',wPtr);
                 beep
             elseif keyCode(NoKey)
                 thisCorrect = 0;
+                Screen('FillRect',wPtr,Gray,wRect);
+                Screen('DrawDots',wPtr,[0,0], FPsize,[255 0 0],dotsXY,FPtype);
+                Screen('Flip',wPtr);
                 sound(yy,Fs);
-                
             elseif keyCode(EscapeKey)
                 Screen('CloseAll');
                 reset_test_gamma;
@@ -433,6 +438,7 @@ try
                 end
             end
             
+            WaitSecs(0.5)
             if ifeyelink
                 if keyCode(DriftCorrestKey)
                     dc = 1;
