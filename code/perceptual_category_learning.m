@@ -51,7 +51,7 @@ initDiff = 20;
 maxDiff = 25*sqrt(2);
 
 freRange = [1 8];
-oriRange = [0 9];
+oriRange = [0 90];
 
 keyList = {KbName('1'),KbName('2')};
 
@@ -489,6 +489,7 @@ try
             
             result{block}.ori(nTrials) = orientation;
             result{block}.fre(nTrials) = frequency;
+            result{block}.key(nTrials) = key;
             result{block}.resp(nTrials) = thisCorrect;
             nTrials = nTrials+1;
         else
