@@ -1,30 +1,31 @@
 %% HISTORY
 % 2010.3.3 
     % 1. Created.
-    % 2. ï¿½ï¿½ï¿½Øµï¿½grayscaleImageMatrixï¿½ï¿½Öµï¿½Ä·ï¿½Î§ï¿½ï¿½-1ï¿½ï¿½1ï¿½ï¿½
-    % 3. ï¿½Ô±È¶ï¿½contrast,ï¿½Õ¼ï¿½Æµï¿½ï¿½spatial frequecy, ï¿½ï¿½ï¿½ï¿½sigmaï¿½Ñ¾ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½È·ï¿½ï¿½
+    % 2. ·µ»ØµÄgrayscaleImageMatrixµÄÖµµÄ·¶Î§ÊÇ-1µ½1¡£
+    % 3. ¶Ô±È¶Ècontrast,¿Õ¼äÆµÂÊspatial frequecy, »¹ÓÐsigmaÒÑ¾­µ÷ÊÔÕýÈ·¡£
 
-    % 1. È¡ï¿½ï¿½ paramï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ö±ï¿½Ó´ï¿½ï¿½ï¿½PixPerDegï¿½ï¿½
-    % 2. PixPerDegï¿½ï¿½ï¿½ï¿½ï¿½Ç¸ï¿½ï¿½ï¿½Ð£ï¿½ï¿½ï¿½ï¿½ï¿½Öµï¿½ï¿½Ò²ï¿½ï¿½ï¿½ï¿½ï¿½Ç¸ï¿½ï¿½ï¿½È·ï¿½ï¿½ï¿½ï¿½Ä³ï¿½Ø¶ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Öµï¿½ï¿½ 
+% 2009.5.6
+    % 1. È¡Ïû param²ÎÊý£¬ Ö±½Ó´«ÈëPixPerDeg¡£
+    % 2. PixPerDeg¿ÉÒÔÊÇ¸ù¾ÝÐ£ÕýºóµÄÖµ£¬Ò²¿ÉÒÔÊÇ¸ü¾«È·µÄÔÚÄ³ÌØ¶¨ÀëÐÄÂÊÏÂËã³öµÄÖµ¡£ 
 
 % 2010.9.8
     %1. sigma=sigma/sqrt(2.3548); % don't know why
     %2. contrast is [0 100];
     
 % 2011.4.19
-%  1. ï¿½ï¿½ï¿½Øµï¿½grayscaleImageMatrixï¿½ï¿½Öµï¿½Ä·ï¿½Î§ï¿½ï¿½-1ï¿½ï¿½1ï¿½ï¿½
+%  1. ·µ»ØµÄgrayscaleImageMatrixµÄÖµµÄ·¶Î§ÊÇ-1µ½1¡£
 
 function grayscaleImageMatrix=MyGabor(pixPerDegree, xor, xextd, yor, yextd, contrast, cycPerDeg, sigma, phase, tiltInDegrees, locCx, locCy)
 
 % *** To rotate the grating, set tiltInDegrees to a new value.
 %tiltInDegrees = 7; % The tilt of the grating in degrees.
 tiltInRadians = (-tiltInDegrees) * pi / 180; % The tilt of the grating in radians.
-% actualWidth=20; %ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê±Ä¬ï¿½ï¿½ï¿½ï¿½Ê¾ï¿½ï¿½Îª21 inch.ï¿½ï¿½ï¿½Ô°ï¿½ï¿½ï¿½ï¿½20cm.
+% actualWidth=20; %ÕâÀïËãÊ±Ä¬ÈÏÏÔÊ¾Æ÷Îª21 inch.ËùÒÔ°ë¿íÊÇ20cm.
 % PixPerDeg= params.rectWidth/(2*(atan(actualWidth/params.distance))*180/pi);  
 % pixPerCyc=PixPerDeg/cycPerDeg;
 % pixelsPerPeriod=pixPerCyc;
 spatialFrequency=cycPerDeg/pixPerDegree;
-sigma=sigma*pixPerDegree;  %Ô­ï¿½ï¿½sigmaï¿½Äµï¿½Î»ï¿½Ç¶ï¿½,ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½pixel.
+sigma=sigma*pixPerDegree;  %Ô­À´sigmaµÄµ¥Î»ÊÇ¶È,ÕâÀï°ÑËü±ä³Épixel.
 % sigma=sigma*2.3548;
 sigma=sigma/sqrt(2); % don't know why
 % *** To lengthen the period of the grating, increase pixelsPerPeriod.
@@ -101,7 +102,7 @@ heightArray=-y0:y1;  % widthArray is used in creating the meshgrid.
 	% circularGaussianMaskMatrix vary between zero and one, each entry of
 	% imageMatrix varies between minus one and one.
 	% -1 <= imageMatrix(x0, y0) <= 1
-	imageMatrix = gratingMatrix .* circularGaussianMaskMatrix; % imageMatrix ï¿½Ä·ï¿½Î§ï¿½ï¿½-1ï¿½ï¿½1ï¿½ï¿½
+	imageMatrix = gratingMatrix .* circularGaussianMaskMatrix; % imageMatrix µÄ·¶Î§ÊÇ-1µ½1£»
 	 
 	% Since each entry of imageMatrix is a fraction between minus one and
 	% one, multiplying imageMatrix by absoluteDifferenceBetweenWhiteAndGray
@@ -116,7 +117,7 @@ heightArray=-y0:y1;  % widthArray is used in creating the meshgrid.
 %     absoluteDifferenceBetweenWhiteAndGray=params.inc*contrast;
 %     
 % 	grayscaleImageMatrix = gray + absoluteDifferenceBetweenWhiteAndGray * imageMatrix;
-grayscaleImageMatrix=imageMatrix*contrast/100;   % grayscaleImageMatrixï¿½Ä·ï¿½Î§ï¿½ï¿½-1ï¿½ï¿½1ï¿½ï¿½
+grayscaleImageMatrix=imageMatrix*contrast/100;   % grayscaleImageMatrixµÄ·¶Î§ÊÇ-1µ½1¡£
     
 
     
