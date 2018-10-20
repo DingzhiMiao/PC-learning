@@ -419,29 +419,21 @@ try
             
             if keyCode(YesKey)
                 thisCorrect = 1;
-<<<<<<< HEAD
-                Screen('FillRect',wPtr,Gray,wRect);
-                Screen('DrawDots',wPtr,[0,0], FPsize,[0 255 0],dotsXY,FPtype);
-                Screen('Flip',wPtr);
-                beep
-            elseif keyCode(NoKey)
-                thisCorrect = 0;
-                Screen('FillRect',wPtr,Gray,wRect);
-                Screen('DrawDots',wPtr,[0,0], FPsize,[255 0 0],dotsXY,FPtype);
-                Screen('Flip',wPtr);
-                sound(yy,Fs);
-=======
                 if feedback
                     WaitSecs(dur.delay);
+                    Screen('DrawDots',wPtr,[0,0], FPsize,[0 255 0],dotsXY,FPtype);
+                    Screen('Flip',wPtr);
                     beep
                 end
             elseif keyCode(NoKey)
                 thisCorrect = 0;
                 if feedback
                     WaitSecs(dur.delay);
+                    Screen('DrawDots',wPtr,[0,0], FPsize,[255 0 0],dotsXY,FPtype);
+                    Screen('Flip',wPtr);
                     sound(yy,Fs);
                 end
->>>>>>> f676e01fa1c123d63dbd288d1d3d8791814986da
+                
             elseif keyCode(EscapeKey)
                 Screen('CloseAll');
                 reset_test_gamma;
