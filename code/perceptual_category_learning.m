@@ -43,12 +43,10 @@ distance = 1000;
 ecc = 5;
 totalTrials = 60;
 
-initDiff = 30;
 
 initDiff = 25;
 maxDiff = 25*sqrt(2);
 
-freRange = [1 8];
 freRange = [1 8];  %%%%%%%%%%%%%%%%%%
 oriRange = [0 90];
 
