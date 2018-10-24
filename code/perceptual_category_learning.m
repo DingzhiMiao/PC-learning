@@ -47,7 +47,7 @@ distance = 1000;
 ecc = 5;
 totalTrials = 60;
 
-initDiff = 20;
+initDiff = 30;
 maxDiff = 25*sqrt(2);
 
 freRange = [1 8];
@@ -364,7 +364,7 @@ try
                         end % if sample available
                     end
                 end
-                if eyeP break; end
+                if eyeP; break; end
             else
                 WaitSecs(dur.iti);
             end
@@ -394,7 +394,7 @@ try
                         end
                     end % if sample available
                 end
-                if eyeP break; end
+                if eyeP; break; end
             else
                 WaitSecs(dur.stim);
             end
