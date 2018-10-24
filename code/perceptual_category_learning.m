@@ -44,13 +44,15 @@ ecc = 5;
 totalTrials = 60;
 
 initDiff = 30;
+
 initDiff = 25;
 maxDiff = 25*sqrt(2);
 
 freRange = [1 8];
+freRange = [1 8];  %%%%%%%%%%%%%%%%%%
 oriRange = [0 90];
 
-keyList = {KbName('1'),KbName('2')};
+keyList = {KbName('n'),KbName('m')};
 
 location = config.location;
 task = config.task;
@@ -418,30 +420,21 @@ try
             
             if keyCode(YesKey)
                 thisCorrect = 1;
-                Screen('FillRect',wPtr,Gray,wRect);
-                Screen('DrawDots',wPtr,[0,0], FPsize,[0 255 0],dotsXY,FPtype);
-                Screen('Flip',wPtr);
-                beep
-            elseif keyCode(NoKey)
-                thisCorrect = 0;
-                Screen('FillRect',wPtr,Gray,wRect);
-                Screen('DrawDots',wPtr,[0,0], FPsize,[255 0 0],dotsXY,FPtype);
-                Screen('Flip',wPtr);
-                sound(yy,Fs);
                 if feedback
-                    WaitSecs(dur.delay);
+                    Screen('FillRect',wPtr,Gray,wRect);
                     Screen('DrawDots',wPtr,[0,0], FPsize,[0 255 0],dotsXY,FPtype);
                     Screen('Flip',wPtr);
                     beep
                 end
+                
             elseif keyCode(NoKey)
                 thisCorrect = 0;
                 if feedback
-                    WaitSecs(dur.delay);
                     Screen('DrawDots',wPtr,[0,0], FPsize,[255 0 0],dotsXY,FPtype);
                     Screen('Flip',wPtr);
                     sound(yy,Fs);
                 end
+                
             elseif keyCode(EscapeKey)
                 Screen('CloseAll');
                 reset_test_gamma;
