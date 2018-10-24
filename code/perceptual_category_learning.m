@@ -1,10 +1,5 @@
-% function perceptual_category_learning(subjectID, session, subrun, feedback, ifeyelink)
-clear;
-ifeyelink = 0;
-subjectID = 'testII';
-session = 1;
-subrun = 1;
-feedback = 1;
+function perceptual_category_learning(subjectID, session, subrun, feedback, ifeyelink)
+% PL & CL learning: RB & II task
 
 %% initialize
 commandwindow;
@@ -46,12 +41,11 @@ displaySize = [400 300];
 distance = 1000;
 
 ecc = 5;
-totalTrials = 40;
-
-initDiff = 20;
+totalTrials = 60;
+initDiff = 25;
 maxDiff = 25*sqrt(2);
 
-freRange = [1 8];
+freRange = [1 8];  %%%%%%%%%%%%%%%%%%
 oriRange = [0 90];
 
 keyList = {KbName('1'),KbName('2')};
@@ -61,10 +55,11 @@ task = config.task;
 rule = config.rule;
 type = config.type;
 
-dur.iti = 0.8;
+dur.iti = 1;
 dur.stim = 0.2;
-dur.rest = 2;
+dur.rest = 30;
 dur.delay = 0.2;
+dur.feedback = 0.5;
 try
     if ifeyelink
         %% STEP 1
@@ -222,7 +217,7 @@ try
     pStaircase.nReversals=10;            % Num. of reversals to end the staircase
     pStaircase.nCalc =6;                 % Num. of reversals used for computing final threshold
     pStaircase.initSetup=initDiff;
-    pStaircase.testCondition=10.^[-1:0.05:1.8];
+    pStaircase.testCondition=10.^[-1:0.03:1.8];
     pStaircase.step=pStaircase.testCondition(2)/pStaircase.testCondition(1);
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -277,6 +272,8 @@ try
     %% The first display %%
     Screen('FillRect',wPtr,Gray,wRect);
     Screen('DrawDots',wPtr,[0,0], FPsize,FPcolor,dotsXY,FPtype);
+    Screen('TextSize',wPtr,25);
+    Screen('DrawText',wPtr,'Press space to start',h/2-180,v/2+50,Black);
     Screen('Flip',wPtr);
     
     %% Initialize the experiments
@@ -325,10 +322,9 @@ try
             
             %% make gabor
             % grayscaleImageMatrix=MyGabor(PixelPerDeg, xor, xextd, yor, yextd, contrast, cycPerDeg, sigma, phase, tiltInDegrees, locCx, locCy)
-            sti=MyGabor(PixelPerDeg, 1, patchxextd, 1, patchyextd, contrast, frequency, sigma, phase1, orientation, locCx, locCy);
-            
-            stiPatch=round((sti+1)/2*255);
-            GaborStim=Screen('MakeTexture',wPtr,stiPatch);
+            sti = MyGabor(PixelPerDeg, 1, patchxextd, 1, patchyextd, contrast, frequency, sigma, phase1, orientation, locCx, locCy);            
+            stiPatch = round((sti+1)/2*255);
+            GaborStim = Screen('MakeTexture',wPtr,stiPatch);
             
             % Define Stimuli Location;
             PicRect=Screen('Rect',GaborStim);
@@ -447,9 +443,8 @@ try
                     Eyelink('message', 'Experiment end by escapeKey %s',KbName(EscapeKey));
                 end
             end
-            
-            WaitSecs(0.5);
-            
+            WaitSecs(dur.feedback);
+           
             if ifeyelink
                 if keyCode(DriftCorrestKey)
                     dc = 1;
@@ -533,7 +528,7 @@ try
     RevIndex=find(history.isReversal==1);
     RevValue=history.testValue(RevIndex);
     RevCalc=RevValue(end-pStaircase.nCalc+1:end);
-    threshold = mean(RevCalc)
+    threshold = mean(RevCalc);
     
     % plot the figure
     plot(1:double(nTrials),double(history.testValue(1,1:nTrials)),'ko-');
@@ -548,6 +543,9 @@ try
     %save (append) the data
     result{block}.session = session;
     result{block}.subrun = subrun;
+    result{block}.type = type;
+    result{block}.rule = rule;
+    result{block}.location = location;
     save([subPath '/pc_learning.mat'],'subjectID','result','block');
     
     fidnew=fopen(fileName,'a');
@@ -557,6 +555,7 @@ try
     fprintf(fidnew, '%2d ', subrun);
     fprintf(fidnew, '%s ', type);
     fprintf(fidnew, '%s ', task);
+    fprintf(fidnew, '%2d ',location);
     fprintf(fidnew, '%5.3f ',threshold);
     fprintf(fidnew, '%2d ', ifeyelink);
     fprintf(fidnew, '%2d ', ecc);
