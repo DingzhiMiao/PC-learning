@@ -1,9 +1,5 @@
-% function perceptual_category_learning(subjectID, subrun, feedback, ifeyelink)
-clear;
-ifeyelink = 0;
-subjectID = 'hdzhdz';
-subrun = 1;
-feedback = 1;
+function perceptual_category_learning(subjectID, session, subrun, feedback, ifeyelink)
+% PL & CL learning: RB & II task
 
 %% initialize
 commandwindow;
@@ -13,7 +9,7 @@ Screen('Preference','SkipSyncTests',1);
 Screen('Preference','VisualDebugLevel',0);
 KbName('UnifyKeyNames');
 
-rng('Shuffle')
+rng('Shuffle');
 
 %% Info.
 filepath = pwd;
@@ -48,6 +44,7 @@ ecc = 5;
 totalTrials = 60;
 
 initDiff = 30;
+initDiff = 25;
 maxDiff = 25*sqrt(2);
 
 freRange = [1 8];
@@ -60,10 +57,11 @@ task = config.task;
 rule = config.rule;
 type = config.type;
 
-dur.iti = 0.8;
+dur.iti = 1;
 dur.stim = 0.2;
-dur.rest = 2;
+dur.rest = 30;
 dur.delay = 0.2;
+dur.feedback = 0.5;
 try
     if ifeyelink
         %% STEP 1
@@ -84,11 +82,11 @@ try
         % experiment graphics. Make sure the entered EDF file name is 1 to 8
         % characters in length and only numbers or letters are allowed.
         
-        while length(subject)>7
+        while length(subjectID)>7
             disp('Enter your name with less characters (1 to 7 letters allowed)');
-            subject = input('Enter the subject ID: ','s');
+            subjectID = input('Enter the subject ID: ','s');
         end
-        edfFile = ['PC' subject  num2str(block)];
+        edfFile = ['PC' subjectID  num2str(block)];
         % the code are in case the subject wrongly input the argument which may replace the old data.
         while  2==exist([filepath '\raw_edf\' edfFile '.edf'],'file')
             disp('Run number was wrong, please check and input agian!');
@@ -203,8 +201,8 @@ try
     contrast = 47;       %
     sigma = 0.68;
     phase = 90;          %
-    patchxextd = ceil(10*PixelPerDeg);  % patch size
-    patchyextd = ceil(10*PixelPerDeg);  % patch size
+    patchxextd = ceil(sigma*5*PixelPerDeg);  % patch size
+    patchyextd = ceil(sigma*5*PixelPerDeg);  % patch size
     locCx = patchxextd/2;
     locCy = patchyextd/2;
     
@@ -221,7 +219,7 @@ try
     pStaircase.nReversals=10;            % Num. of reversals to end the staircase
     pStaircase.nCalc =6;                 % Num. of reversals used for computing final threshold
     pStaircase.initSetup=initDiff;
-    pStaircase.testCondition=10.^[-1:0.05:1.8];
+    pStaircase.testCondition=10.^[-1:0.03:1.8];
     pStaircase.step=pStaircase.testCondition(2)/pStaircase.testCondition(1);
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -276,6 +274,8 @@ try
     %% The first display %%
     Screen('FillRect',wPtr,Gray,wRect);
     Screen('DrawDots',wPtr,[0,0], FPsize,FPcolor,dotsXY,FPtype);
+    Screen('TextSize',wPtr,25);
+    Screen('DrawText',wPtr,'Press space to start',h/2-180,v/2+50,Black);
     Screen('Flip',wPtr);
     
     %% Initialize the experiments
@@ -317,17 +317,16 @@ try
             else
                 orientation = ori_std/100*(oriRange(2)-oriRange(1))+oriRange(1);
             end
-            frequency = ori_std/100*(freRange(2)-freRange(1))+freRange(1);
+            frequency = freq_std/100*(freRange(2)-freRange(1))+freRange(1);
             orientation = -orientation;
             YesKey = keyList{key};
             NoKey = keyList{3-key};
             
             %% make gabor
             % grayscaleImageMatrix=MyGabor(PixelPerDeg, xor, xextd, yor, yextd, contrast, cycPerDeg, sigma, phase, tiltInDegrees, locCx, locCy)
-            sti=MyGabor(PixelPerDeg, 1, patchxextd, 1, patchyextd, contrast, frequency, sigma, phase1, orientation, locCx, locCy);
-            
-            stiPatch=round((sti+1)/2*255);
-            GaborStim=Screen('MakeTexture',wPtr,stiPatch);
+            sti = MyGabor(PixelPerDeg, 1, patchxextd, 1, patchyextd, contrast, frequency, sigma, phase1, orientation, locCx, locCy);            
+            stiPatch = round((sti+1)/2*255);
+            GaborStim = Screen('MakeTexture',wPtr,stiPatch);
             
             % Define Stimuli Location;
             PicRect=Screen('Rect',GaborStim);
@@ -431,12 +430,16 @@ try
                 sound(yy,Fs);
                 if feedback
                     WaitSecs(dur.delay);
+                    Screen('DrawDots',wPtr,[0,0], FPsize,[0 255 0],dotsXY,FPtype);
+                    Screen('Flip',wPtr);
                     beep
                 end
             elseif keyCode(NoKey)
                 thisCorrect = 0;
                 if feedback
                     WaitSecs(dur.delay);
+                    Screen('DrawDots',wPtr,[0,0], FPsize,[255 0 0],dotsXY,FPtype);
+                    Screen('Flip',wPtr);
                     sound(yy,Fs);
                 end
             elseif keyCode(EscapeKey)
@@ -451,8 +454,8 @@ try
                     Eyelink('message', 'Experiment end by escapeKey %s',KbName(EscapeKey));
                 end
             end
-            
-            WaitSecs(0.5)
+            WaitSecs(dur.feedback);
+           
             if ifeyelink
                 if keyCode(DriftCorrestKey)
                     dc = 1;
@@ -502,6 +505,7 @@ try
             result{block}.fre(nTrials) = frequency;
             result{block}.key(nTrials) = key;
             result{block}.resp(nTrials) = thisCorrect;
+                        
             nTrials = nTrials+1;
         else
             eyeTrial = eyeTrial + 1;
@@ -535,7 +539,7 @@ try
     RevIndex=find(history.isReversal==1);
     RevValue=history.testValue(RevIndex);
     RevCalc=RevValue(end-pStaircase.nCalc+1:end);
-    threshold = mean(RevCalc)
+    threshold = mean(RevCalc);
     
     % plot the figure
     plot(1:double(nTrials),double(history.testValue(1,1:nTrials)),'ko-');
@@ -548,16 +552,23 @@ try
     pEye = eyeTrial/(nTrials+eyeTrial);
     
     %save (append) the data
+    result{block}.session = session;
+    result{block}.subrun = subrun;
+    result{block}.type = type;
+    result{block}.rule = rule;
+    result{block}.location = location;
     save([subPath '/pc_learning.mat'],'subjectID','result','block');
     
     fidnew=fopen(fileName,'a');
     fprintf(fidnew, '%s ', subjectID);
-    fprintf(fidnew, '%2d ', subrun);
     fprintf(fidnew, '%s ', date);
+    fprintf(fidnew, '%2d ', session);
+    fprintf(fidnew, '%2d ', subrun);
     fprintf(fidnew, '%s ', type);
     fprintf(fidnew, '%s ', task);
-    fprintf(fidnew, '%s ', ifeyelink);
+    fprintf(fidnew, '%2d ',location);
     fprintf(fidnew, '%5.3f ',threshold);
+    fprintf(fidnew, '%2d ', ifeyelink);
     fprintf(fidnew, '%2d ', ecc);
     fprintf(fidnew, '%2d ', initDiff);
     fprintf(fidnew, '%5.3f ',pEye);
