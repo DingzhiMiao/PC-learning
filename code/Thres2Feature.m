@@ -23,12 +23,12 @@ switch F_type
         y_func = 'x';
         if rand > 0.5
             move_dir = 1;
-            key = 1;
+            key = 2;
             min_x = 0;
             max_x = 100 - thres * sqrt(2);
         else
             move_dir = -1;
-            key = 2;
+            key = 1;
             min_x =  thres * sqrt(2);
             max_x = 100;
         end;
