@@ -8,7 +8,7 @@ else
 end
 
 if strcmp(config.task, 'RB')
-    config.rule = input('Training rule( 45 or 135): ');
+    config.rule = input('Training rule( 36 or 126): ');
     config.type = 'RB';
 elseif strcmp(config.task, 'II')
     config.rule = input('Training rule( 1 or 2): ');

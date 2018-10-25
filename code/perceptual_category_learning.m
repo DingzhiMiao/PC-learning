@@ -10,7 +10,7 @@ Screen('Preference','VisualDebugLevel',0);
 KbName('UnifyKeyNames');
 
 rng('Shuffle');
-
+  
 %% Info.
 filepath = pwd;
 dataPath = [filepath '\..\data'];
@@ -36,7 +36,7 @@ block = block + 1;
 
 height = 1024;
 width = 768;
-framerate = 60;
+framerate = 120;
 displaySize = [400 300];
 distance = 1000;
 
@@ -44,19 +44,24 @@ ecc = 5;
 totalTrials = 60;
 
 
-initDiff = 25;
+% initDiff = 25;
 maxDiff = 25*sqrt(2);
 
-freRange = [1 8];  %%%%%%%%%%%%%%%%%%
+freRange = [0 3];  %%%%%2^freRange
 oriRange = [0 90];
 
-keyList = {KbName('n'),KbName('m')};
+keyList = {KbName('1'),KbName('2')};
 
 location = config.location;
 task = config.task;
 rule = config.rule;
 type = config.type;
 
+if task == 'RB'
+    initDiff = 10;
+else
+    initDiff = 25;
+end
 dur.iti = 1;
 dur.stim = 0.2;
 dur.rest = 30;
@@ -198,7 +203,7 @@ try
     FPcolor = 255;
     
     %% gabor stimuli parameters
-    contrast = 47;       %
+    contrast = 80;       %
     sigma = 0.68;
     phase = 90;          %
     patchxextd = ceil(sigma*5*PixelPerDeg);  % patch size
@@ -318,6 +323,7 @@ try
                 orientation = ori_std/100*(oriRange(2)-oriRange(1))+oriRange(1);
             end
             frequency = freq_std/100*(freRange(2)-freRange(1))+freRange(1);
+            frequency = 2^frequency;
             orientation = -orientation;
             YesKey = keyList{key};
             NoKey = keyList{3-key};
@@ -531,7 +537,13 @@ try
     %% Analyse the Staircase and calculate the threshold
     RevIndex=find(history.isReversal==1);
     RevValue=history.testValue(RevIndex);
-    RevCalc=RevValue(end-pStaircase.nCalc+1:end);
+    if length(RevValue)<=3
+        RevCalc=RevValue;
+    elseif length(RevValue)<=6
+        RevCalc=RevValue(3:end);
+    else
+        RevCalc=RevValue(end-pStaircase.nCalc+1:end);
+    end
     threshold = mean(RevCalc);
     
     % plot the figure
@@ -550,6 +562,9 @@ try
     result{block}.type = type;
     result{block}.rule = rule;
     result{block}.location = location;
+    result{block}.threshold = threshold;
+    result{block}.RevValue = RevValue;
+        
     save([subPath '/pc_learning.mat'],'subjectID','result','block');
     
     fidnew=fopen(fileName,'a');

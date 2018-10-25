@@ -1,6 +1,7 @@
-function perceptual_category_random(subjectID, session, subrun, feedback, ifeyelink)
+function perceptual_category_practice(subjectID, session, subrun, feedback, ifeyelink)
 % PL & CL learning: RB & II task
-close all
+
+
 %% initialize
 commandwindow;
 
@@ -10,7 +11,7 @@ Screen('Preference','VisualDebugLevel',0);
 KbName('UnifyKeyNames');
 
 rng('Shuffle');
-  
+
 %% Info.
 filepath = pwd;
 dataPath = [filepath '\..\data'];
@@ -20,7 +21,7 @@ if ~exist(subPath, 'dir')
     mkdir(subPath);
 end
 
-fileName = [dataPath '\pc_random.dat'];
+fileName = [dataPath '\pc_learning.dat'];
 
 if exist([subPath '/config_file.mat'], 'file')
     load([subPath '/config_file.mat']);
@@ -29,8 +30,8 @@ else
 end
 
 block = 0;
-if exist([subPath '/pc_random.mat'],'file')
-    load([subPath '/pc_random.mat']);
+if exist([subPath '/pc_learning.mat'],'file')
+    load([subPath '/pc_learning.mat']);
 end
 block = block + 1;
 
@@ -41,13 +42,13 @@ displaySize = [400 300];
 distance = 1000;
 
 ecc = 5;
-totalTrials = 50;
+totalTrials = 10;
 
 
 initDiff = 25;
 maxDiff = 25*sqrt(2);
 
-freRange = [0 3]; 
+freRange = [0 3];  %%%%%%%%%%%%%%%%%%
 oriRange = [0 90];
 
 keyList = {KbName('1'),KbName('2')};
@@ -57,30 +58,9 @@ task = config.task;
 rule = config.rule;
 type = config.type;
 
-condi = input('Which condition ( orig, new_loc, new_rule): ', 's');
-switch condi
-    case 'new_loc'
-        location = 540 - location;
-    case 'new_rule'
-        if strcmp(task, 'RB')
-            rule = 162 - rule;
-        else
-            rule = 3 - rule;
-            type = [task '_' num2str(rule)];
-        end;
-end
-
-if strcmp(task, 'RB')
-    diff_mean = 5;
-    diff_std = 3;
-else
-    diff_mean = 15;
-    diff_std = 5;
-end;
-
 dur.iti = 1;
 dur.stim = 0.2;
-dur.rest = 30;
+dur.rest = 2;
 dur.delay = 0.2;
 dur.feedback = 0.5;
 try
@@ -229,7 +209,30 @@ try
     
     offLocX = round(ecc*cosd(location)*PixelPerDeg);
     offLocY = round(-ecc*sind(location)*PixelPerDeg);
-
+    
+    %% staircase
+    % Start some local variables used to control the staircase
+    pStaircase.nUps=3;                   %3-> ~80% success 2->~70% success 1->~50% ssuccess
+    pStaircase.initStep =2;              % calculated from after Inital steps dropped
+    pStaircase.nChanges=2;               % Num. of reversals after which the step size changes to 1.
+    pStaircase.nPractice=1;
+    pStaircase.conditionScale = 1;       % This identifies the type of the scale of conditions vector, 0 for linear; 1 for logarithm scale.
+    pStaircase.nReversals=10;            % Num. of reversals to end the staircase
+    pStaircase.nCalc =6;                 % Num. of reversals used for computing final threshold
+    pStaircase.initSetup=initDiff;
+    pStaircase.testCondition=10.^[-1:0.03:1.8];
+    pStaircase.step=pStaircase.testCondition(2)/pStaircase.testCondition(1);
+    
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    % Record the results of current data
+    initValueIndex=find(pStaircase.testCondition>=(pStaircase.initSetup));
+    history.testValue=pStaircase.testCondition(initValueIndex(1));
+    
+    history.isReversal=[0];       % whether is a reversal
+    history.correct=[];           % correct or not in this trial
+    history.nUp=[1];              % how many trials is accumulated to be correct
+    history.UpOrDown=[];          % the trend of the psychometrics is up or down , only to calculate the reversals
+    
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     if ifeyelink
         %% recorde block information at begining of the .edf file
@@ -295,13 +298,11 @@ try
         eyeP = 0;
         dc = 0;
         
-        difficulty = normrnd(diff_mean, diff_std);
-        if difficulty > diff_mean + 3 * diff_std
-            difficulty = diff_mean + 3 * diff_std;
-        elseif difficulty < 0
-            difficulty = 0;
-        end;
-        
+        difficulty = history.testValue(nTrials);
+        if difficulty > maxDiff
+            difficulty = maxDiff;
+            history.testValue(nTrials) = maxDiff;
+        end
         if ifeyelink
             Eyelink('Message', 'TRIALID %d', nTrials);
         end
@@ -489,12 +490,14 @@ try
         end
         
         if ~eyeP
+            history.correct = [history.correct thisCorrect];
+            history=staircaseUpdate(history, pStaircase, nTrials);
+            reversal=sum(history.isReversal);
             
             result{block}.ori(nTrials) = orientation;
             result{block}.fre(nTrials) = frequency;
             result{block}.ori_std(nTrials) = ori_std;
             result{block}.fre_std(nTrials) = freq_std;
-            result{block}.diff(nTrials) = difficulty;
             result{block}.key(nTrials) = key;
             result{block}.resp(nTrials) = thisCorrect;
                         
@@ -527,58 +530,53 @@ try
     Screen('Flip',wPtr);
     WaitSecs(dur.rest);
     
-    %% Analyse the DATA and calculate the Accuracy
-    Acc = mean(result{block}.resp)
+    %% Analyse the Staircase and calculate the threshold
+%     RevIndex=find(history.isReversal==1);
+%     RevValue=history.testValue(RevIndex);
+%     RevCalc=RevValue(end-pStaircase.nCalc+1:end);
+%     threshold = mean(RevCalc);
     
     % plot the figure
-    
-    pEye = eyeTrial/(nTrials+eyeTrial);
+%     plot(1:double(nTrials),double(history.testValue(1,1:nTrials)),'ko-');
+%     xlabel('Trial number');
+%     ylabel('Threshold');
+%     title('Threshold vs. Trial Number');
+%     legend(num2str(threshold));
+%     hold on;
+%     
+%     pEye = eyeTrial/(nTrials+eyeTrial);
     
     %save (append) the data
-    result{block}.session = session;
-    result{block}.subrun = subrun;
-    result{block}.type = type;
-    result{block}.rule = rule;
-    result{block}.location = location;
-    result{block}.condi = condi;
-    result{block}.Acc = Acc;
-    save([subPath '/pc_random.mat'],'subjectID','result','block');
-    
-    fidnew=fopen(fileName,'a');
-    fprintf(fidnew, '%s ', subjectID);
-    fprintf(fidnew, '%s ', date);
-    fprintf(fidnew, '%2d ', session);
-    fprintf(fidnew, '%2d ', subrun);
-    fprintf(fidnew, '%s ', condi);
-    fprintf(fidnew, '%s ', type);
-    fprintf(fidnew, '%s ', task);
-    fprintf(fidnew, '%2d ',location);
-    fprintf(fidnew, '%5.3f ',Acc);
-    fprintf(fidnew, '%2d ', ifeyelink);
-    fprintf(fidnew, '%2d ', ecc);
-    fprintf(fidnew, '%5.3f ',pEye);
-    fprintf(fidnew, '%4.2f ', contrast);
-    fprintf(fidnew, '%4.2f ', sigma);
-    fprintf(fidnew, '\n');
-    status=fclose(fidnew);
+%     result{block}.session = session;
+%     result{block}.subrun = subrun;
+%     result{block}.type = type;
+%     result{block}.rule = rule;
+%     result{block}.location = location;
+%     save([subPath '/pc_learning.mat'],'subjectID','result','block');
+%     
+%     fidnew=fopen(fileName,'a');
+%     fprintf(fidnew, '%s ', subjectID);
+%     fprintf(fidnew, '%s ', date);
+%     fprintf(fidnew, '%2d ', session);
+%     fprintf(fidnew, '%2d ', subrun);
+%     fprintf(fidnew, '%s ', type);
+%     fprintf(fidnew, '%s ', task);
+%     fprintf(fidnew, '%2d ',location);
+%     fprintf(fidnew, '%5.3f ',threshold);
+%     fprintf(fidnew, '%2d ', ifeyelink);
+%     fprintf(fidnew, '%2d ', ecc);
+%     fprintf(fidnew, '%2d ', initDiff);
+%     fprintf(fidnew, '%5.3f ',pEye);
+%     fprintf(fidnew, '%4.2f ', contrast);
+%     fprintf(fidnew, '%4.2f ', sigma);
+%     fprintf(fidnew, '%5.3f ',RevValue);
+%     fprintf(fidnew, '\n');
+%     status=fclose(fidnew);
     
     ShowCursor;
     Screen('CloseAll');
     
     reset_test_gamma;
-    
-    %% plot results
-    ori_std =  result{block}.ori_std;
-    freq_std = result{block}.fre_std;
-    key =  result{block}.key;
-    thisCorrect =  result{block}.resp;
-    plot(freq_std((thisCorrect == 1) & (key == 1)), ori_std((thisCorrect == 1) & (key == 1)), 'bo');
-    hold on;
-    plot(freq_std((thisCorrect == 1) & (key == 2)), ori_std((thisCorrect == 1) & (key == 2)), 'go');
-    plot(freq_std(thisCorrect == 0), ori_std(thisCorrect == 0), 'rx');
-    xlim([0 100]);
-    ylim([0 100]);
-    axis square;
 catch
     %this "catch" section executes in case of an error in the "try" section
     %above.  Importantly, it closes the onscreen window if its open.
